@@ -1,9 +1,9 @@
 {
   "name": "@lucasroll62/nuxt2-auth-module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Authentication module for Nuxt.js",
-  "author": "Lucas Vivono",
   "license": "MIT",
+  "author": "Lucas Vivono",
   "sideEffects": "false",
   "exports": {
     ".": {

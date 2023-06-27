@@ -1,6 +1,7 @@
 import type {
   EndpointsOption,
   HTTPResponse,
+  IdTokenableSchemeOptions,
   RefreshableScheme,
   RefreshableSchemeOptions,
   SchemeCheck,
@@ -11,11 +12,13 @@ import type {
 } from '../types'
 import {
   ExpiredAuthSessionError,
+  IdToken,
   RefreshController,
   RefreshToken,
   RequestHandler,
   Token
 } from '../inc'
+import { QueryObject, joinURL, withQuery } from 'ufo';
 import {
   encodeQuery,
   getProp,
@@ -25,7 +28,6 @@ import {
   removeTokenPrefix,
   urlJoin
 } from '../utils'
-import { joinURL, withQuery } from 'ufo';
 
 import type { Auth } from '../core'
 import { BaseScheme } from './base'
@@ -48,12 +50,12 @@ export interface IdTokenScheme {
 export interface Oauth2SchemeOptions
   extends SchemeOptions,
     TokenableSchemeOptions,
+    IdTokenableSchemeOptions,
     RefreshableSchemeOptions {
   endpoints: Oauth2SchemeEndpoints
   user: UserOptions
   responseMode: 'query.jwt' | 'fragment.jwt' | 'form_post.jwt' | 'jwt'
   responseType: 'code' | 'token' | 'id_token' | 'none' | string
-  idToken: IdTokenScheme
   grantType:
     | 'implicit'
     | 'authorization_code'
@@ -126,6 +128,7 @@ export class Oauth2Scheme<
   implements RefreshableScheme
 {
   public req
+  public idToken: IdToken
   public token: Token
   public refreshToken: RefreshToken
   public refreshController: RefreshController
@@ -326,14 +329,14 @@ export class Oauth2Scheme<
 
   logout() {
     if (this.options.endpoints.logout) {
-      const opts = {
-        id_token_hint: this.idToken.get(),
+      const opts: QueryObject = {
+        id_token_hint: this.idToken.get().toString(),
         post_logout_redirect_uri: this.logoutRedirectURI
-      };
-      const url = withQuery(this.options.endpoints.logout, opts);
-      window.location.replace(url);
+      }
+      const url = withQuery(this.options.endpoints.logout, opts)
+      window.location.replace(url)
     }
-    return this.$auth.reset();
+    return this.$auth.reset()
   }
 
   async fetchUser(): Promise<void> {

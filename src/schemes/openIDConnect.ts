@@ -1,17 +1,18 @@
-import { IdTokenableSchemeOptions } from '../types'
-import { encodeQuery, parseQuery, normalizePath, getProp } from '../utils'
-import { IdToken, ConfigurationDocument } from '../inc'
 import type {
   Auth,
   HTTPResponse,
   SchemeCheck,
   SchemePartialOptions
 } from '../index'
+import { ConfigurationDocument, IdToken } from '../inc'
 import {
   Oauth2Scheme,
   Oauth2SchemeEndpoints,
   Oauth2SchemeOptions
 } from './oauth2'
+import { encodeQuery, getProp, normalizePath, parseQuery } from '../utils'
+
+import { IdTokenableSchemeOptions } from '../types'
 
 export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
   configuration: string
@@ -40,7 +41,6 @@ const DEFAULTS: SchemePartialOptions<OpenIDConnectSchemeOptions> = {
 export class OpenIDConnectScheme<
   OptionsT extends OpenIDConnectSchemeOptions = OpenIDConnectSchemeOptions
 > extends Oauth2Scheme<OptionsT> {
-  public idToken: IdToken
   public configurationDocument: ConfigurationDocument
 
   constructor(
