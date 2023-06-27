@@ -150,6 +150,7 @@ export class Oauth2Scheme<
 
     // Initialize Token instance
     this.token = new Token(this, this.$auth.$storage)
+    this.idToken = new IdToken(this, this.$auth.$storage)
 
     // Initialize Refresh Token instance
     this.refreshToken = new RefreshToken(this, this.$auth.$storage)
