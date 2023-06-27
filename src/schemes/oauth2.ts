@@ -1,39 +1,48 @@
-import requrl from 'requrl'
 import type {
-  RefreshableScheme,
-  SchemePartialOptions,
-  SchemeCheck,
-  RefreshableSchemeOptions,
-  UserOptions,
-  SchemeOptions,
-  HTTPResponse,
   EndpointsOption,
-  TokenableSchemeOptions
+  HTTPResponse,
+  RefreshableScheme,
+  RefreshableSchemeOptions,
+  SchemeCheck,
+  SchemeOptions,
+  SchemePartialOptions,
+  TokenableSchemeOptions,
+  UserOptions
 } from '../types'
-import type { Auth } from '../core'
+import {
+  ExpiredAuthSessionError,
+  RefreshController,
+  RefreshToken,
+  RequestHandler,
+  Token
+} from '../inc'
 import {
   encodeQuery,
   getProp,
   normalizePath,
   parseQuery,
+  randomString,
   removeTokenPrefix,
-  urlJoin,
-  randomString
+  urlJoin
 } from '../utils'
-import {
-  RefreshController,
-  RequestHandler,
-  ExpiredAuthSessionError,
-  Token,
-  RefreshToken
-} from '../inc'
+import { joinURL, withQuery } from 'ufo';
+
+import type { Auth } from '../core'
 import { BaseScheme } from './base'
+import requrl from 'requrl'
 
 export interface Oauth2SchemeEndpoints extends EndpointsOption {
   authorization: string
   token: string
   userInfo: string
   logout: string | false
+}
+
+export interface IdTokenScheme {
+  property: string
+  maxAge: number
+  prefix: string
+  expirationPrefix: string
 }
 
 export interface Oauth2SchemeOptions
@@ -44,6 +53,7 @@ export interface Oauth2SchemeOptions
   user: UserOptions
   responseMode: 'query.jwt' | 'fragment.jwt' | 'form_post.jwt' | 'jwt'
   responseType: 'code' | 'token' | 'id_token' | 'none' | string
+  idToken: IdTokenScheme
   grantType:
     | 'implicit'
     | 'authorization_code'
@@ -74,6 +84,12 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
   responseMode: null,
   acrValues: null,
   autoLogout: false,
+  idToken: {
+    property: 'id_token',
+    maxAge: 1800,
+    prefix: '_id_token.',
+    expirationPrefix: '_id_token_expiration.'
+  },
   endpoints: {
     logout: null,
     authorization: null,
@@ -308,16 +324,16 @@ export class Oauth2Scheme<
     window.location.replace(url)
   }
 
-  logout(): void {
+  logout() {
     if (this.options.endpoints.logout) {
       const opts = {
-        client_id: this.options.clientId + '',
-        logout_uri: this.logoutRedirectURI
-      }
-      const url = this.options.endpoints.logout + '?' + encodeQuery(opts)
-      window.location.replace(url)
+        id_token_hint: this.idToken.get(),
+        post_logout_redirect_uri: this.logoutRedirectURI
+      };
+      const url = withQuery(this.options.endpoints.logout, opts);
+      window.location.replace(url);
     }
-    return this.$auth.reset()
+    return this.$auth.reset();
   }
 
   async fetchUser(): Promise<void> {

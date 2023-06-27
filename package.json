@@ -1,8 +1,8 @@
 {
-  "name": "@nuxtjs/auth",
-  "version": "5.0.0-dev",
+  "name": "@lucasroll62/nuxt2-auth-module",
+  "version": "1.0.0",
   "description": "Authentication module for Nuxt.js",
-  "repository": "nuxt-community/auth-module",
+  "author": "Lucas Vivono",
   "license": "MIT",
   "sideEffects": "false",
   "exports": {
@@ -46,7 +46,8 @@
     "defu": "^5.0.1",
     "hasha": "^5.2.2",
     "jwt-decode": "^3.1.2",
-    "requrl": "^3.0.2"
+    "requrl": "^3.0.2",
+    "ufo": "^1.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
