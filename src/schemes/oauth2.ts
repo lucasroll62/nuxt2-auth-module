@@ -332,7 +332,7 @@ export class Oauth2Scheme<
     if (this.options.endpoints.logout) {
       const opts: QueryObject = {
         id_token_hint: this.idToken.get().toString(),
-        post_logout_redirect_uri: this.logoutRedirectURI
+        // post_logout_redirect_uri: this.logoutRedirectURI
       }
       const url = withQuery(this.options.endpoints.logout, opts)
       window.location.replace(url)
