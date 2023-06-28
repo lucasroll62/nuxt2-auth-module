@@ -21,6 +21,7 @@ export interface OpenIDConnectSchemeEndpoints extends Oauth2SchemeEndpoints {
 export interface OpenIDConnectSchemeOptions
   extends Oauth2SchemeOptions,
     IdTokenableSchemeOptions {
+  fetchRemote: boolean
   endpoints: OpenIDConnectSchemeEndpoints
 }
 
@@ -35,6 +36,7 @@ const DEFAULTS: SchemePartialOptions<OpenIDConnectSchemeOptions> = {
     prefix: '_id_token.',
     expirationPrefix: '_id_token_expiration.'
   },
+  fetchRemote: false,
   codeChallengeMethod: 'S256'
 }
 
@@ -192,6 +194,12 @@ export class OpenIDConnectScheme<
     if (!this.check().valid) {
       return
     }
+
+    if (!this.options.fetchRemote && this.idToken.get()) {
+      const data = this.idToken.userInfo()
+      this.$auth.setUser(data)
+      return
+  }
 
     if (this.idToken.get()) {
       const data = this.idToken.userInfo()

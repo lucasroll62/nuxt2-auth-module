@@ -73,6 +73,7 @@ export interface Oauth2SchemeOptions
   acrValues: string
   audience: string
   autoLogout: boolean
+  fetchRemote: boolean
 }
 
 const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
@@ -86,6 +87,7 @@ const DEFAULTS: SchemePartialOptions<Oauth2SchemeOptions> = {
   responseMode: null,
   acrValues: null,
   autoLogout: false,
+  fetchRemote: false,
   idToken: {
     property: 'id_token',
     maxAge: 1800,
@@ -355,10 +357,10 @@ export class Oauth2Scheme<
     }
 
     if (!this.options.fetchRemote && this.idToken.get()) {
-      const data2 = this.idToken.userInfo()
-      this.$auth.setUser(data2)
+      const data = this.idToken.userInfo()
+      this.$auth.setUser(data)
       return
-    }
+  }
 
     if (!this.options.endpoints.userInfo) {
       this.$auth.setUser({})
