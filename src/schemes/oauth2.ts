@@ -188,12 +188,14 @@ export class Oauth2Scheme<
       valid: false,
       tokenExpired: false,
       refreshTokenExpired: false,
-      isRefreshable: true
+      isRefreshable: true,
+      idTokenExpired: false
     }
 
     // Sync tokens
     const token = this.token.sync()
     this.refreshToken.sync()
+    this.idToken.sync()
 
     // Token is required but not available
     if (!token) {
@@ -209,6 +211,7 @@ export class Oauth2Scheme<
     // Get status
     const tokenStatus = this.token.status()
     const refreshTokenStatus = this.refreshToken.status()
+    const idTokenStatus = this.idToken.status()
 
     // Refresh token has expired. There is no way to refresh. Force reset.
     if (refreshTokenStatus.expired()) {
@@ -219,6 +222,11 @@ export class Oauth2Scheme<
     // Token has expired, Force reset.
     if (tokenStatus.expired()) {
       response.tokenExpired = true
+      return response
+    }
+
+    if (idTokenStatus.expired()) {
+      response.idTokenExpired = true
       return response
     }
 
@@ -253,6 +261,7 @@ export class Oauth2Scheme<
     this.token.reset()
     this.refreshToken.reset()
     this.requestHandler.reset()
+    this.idToken.reset()
   }
 
   async login(
@@ -332,7 +341,7 @@ export class Oauth2Scheme<
     if (this.options.endpoints.logout) {
       const opts: QueryObject = {
         id_token_hint: this.idToken.get().toString(),
-        // post_logout_redirect_uri: this.logoutRedirectURI
+        post_logout_redirect_uri: this.logoutRedirectURI
       }
       const url = withQuery(this.options.endpoints.logout, opts)
       window.location.replace(url)
@@ -342,6 +351,12 @@ export class Oauth2Scheme<
 
   async fetchUser(): Promise<void> {
     if (!this.check().valid) {
+      return
+    }
+
+    if (!this.options.fetchRemote && this.idToken.get()) {
+      const data2 = this.idToken.userInfo()
+      this.$auth.setUser(data2)
       return
     }
 
@@ -375,6 +390,7 @@ export class Oauth2Scheme<
     const parsedQuery = Object.assign({}, this.$auth.ctx.route.query, hash)
     // accessToken/idToken
     let token: string = parsedQuery[this.options.token.property] as string
+    let idToken: string = parsedQuery[this.options.idToken.property] as string
     // refresh token
     let refreshToken: string
 
@@ -429,6 +445,8 @@ export class Oauth2Scheme<
           response.data,
           this.options.refreshToken.property
         ) as string) || refreshToken
+      idToken =
+        (getProp(response, this.options.idToken.property) as string) || idToken
     }
 
     if (!token || !token.length) {
@@ -441,6 +459,10 @@ export class Oauth2Scheme<
     // Store refresh token
     if (refreshToken && refreshToken.length) {
       this.refreshToken.set(refreshToken)
+    }
+
+    if (idToken && idToken.length) {
+      this.idToken.set(idToken)
     }
 
     // Redirect to home
@@ -511,6 +533,14 @@ export class Oauth2Scheme<
 
     if (refreshToken) {
       this.refreshToken.set(refreshToken)
+    }
+
+    const idToken: string = getProp(
+      response,
+      this.options.idToken.property
+    ) as string
+    if (idToken) {
+      this.idToken.set(idToken)
     }
   }
 
