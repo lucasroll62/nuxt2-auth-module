@@ -448,7 +448,7 @@ export class Oauth2Scheme<
           this.options.refreshToken.property
         ) as string) || refreshToken
       idToken =
-        (getProp(response, this.options.idToken.property) as string) || idToken
+        (getProp(response.data, this.options.idToken.property) as string) || idToken
     }
 
     if (!token || !token.length) {
